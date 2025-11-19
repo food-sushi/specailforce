@@ -11,6 +11,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /* =====================================================
+   ALLOW IFRAME EMBEDDING  (IMPORTANT)
+===================================================== */
+app.use((req, res, next) => {
+  res.setHeader("X-Frame-Options", "ALLOWALL");
+  res.setHeader("Content-Security-Policy", "frame-ancestors *");
+  next();
+});
+
+/* =====================================================
    BOT BLOCK
 ===================================================== */
 const blockedBots = [
@@ -46,7 +55,7 @@ app.use((req, res, next) => {
   // Allow ?loader=true
   if (req.query.loader === "true") return next();
 
-  // Allow pages from your domain (referer starts with your domain)
+  // Allow pages requested from your domain
   const referer = (req.headers.referer || "").toLowerCase();
   if (referer.startsWith(ALLOWED_ORIGIN.toLowerCase())) return next();
 
@@ -56,12 +65,10 @@ app.use((req, res, next) => {
 /* =====================================================
    FRONTEND LOADER  — INDIA ONLY
 ===================================================== */
-
 app.get("/frontend-loader", (req, res) => {
   const tzRaw = req.headers["x-client-timezone"] || "";
   const tz = tzRaw.toLowerCase();
 
-  // India valid timezones returned by browsers
   const allowedTZ = [
     "asia/kolkata",
     "asia/calcutta"
